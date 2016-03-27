@@ -1,0 +1,272 @@
+//Jacob Hewitt - Computer Science - 3218832
+
+// constructor method. Takes the data to be stored and saves.
+template <typename MechPart> 
+BSTree<MechPart>::BSTree(){
+	root = NULL;
+}
+
+// takes a node to set as the root node.
+template <typename MechPart> 
+BSTree<MechPart>::BSTree(BTNode<MechPart>* root){
+	this.root = root;
+}
+
+// this is the destructor method. It calls the method deleteTree() which deletes each node in the tree.
+template <typename MechPart> 
+BSTree<MechPart>::~BSTree(){
+	deleteTree(root);
+}
+
+// used to delete the tree.
+template <typename MechPart>
+void BSTree<MechPart>::deleteTree(){
+	deleteTree(root); // delete the tree
+}
+
+// this function loops through each node in the tree and deletes it.
+template <typename MechPart>
+void BSTree<MechPart>::deleteTree(BTNode<MechPart>* toDelete){
+	if(toDelete == NULL){ // check if the current node is null
+		return;
+	}
+	if(toDelete->getLeft() != NULL){ // check if the left pointer is not NULL.
+		deleteTree(toDelete->getLeft()); // call the same function on the left node.
+	}
+	if(toDelete->getRight()!= NULL){
+		deleteTree(toDelete->getRight());
+		
+	}
+	delete toDelete; // delete the current node.
+}
+
+// this function returns the root node of the tree.
+template <typename MechPart> 
+BTNode<MechPart>* BSTree<MechPart>::getRoot(){
+	return root;
+}
+
+// return the left node held by the root.
+template <typename MechPart> 
+BTNode<MechPart>* BSTree<MechPart>::getLeft(){
+	return root->getLeft();
+}
+
+// return the right node held by the root.
+template <typename MechPart> 
+BTNode<MechPart>* BSTree<MechPart>::getRight(){
+	return root->getRight();
+}
+
+// return the MechPart object stored in the root node.
+template <typename MechPart> 
+MechPart* BSTree<MechPart>::current(){
+	if(root != NULL){
+		return root->getData();
+	}else{
+		return NULL;
+	}
+}
+
+// this function is used to insert a new node into the tree. The function takes a MechPart object to create the node.
+template <typename MechPart>
+void BSTree<MechPart>::insert(MechPart* mechPart){
+	
+	if(root == NULL){ // tree is empty
+		root = new BTNode<MechPart>(mechPart, NULL, NULL, NULL); // create the root node with the MechPart supplied.
+	}else{
+		if(root->add(mechPart) == false){ // call the root node's function add(). if it returns false, remove the node.
+			if(deleteNode(mechPart) != true){ // delete the node
+				std::cout << "Error Deleting Node" << std::endl;
+			}
+		}
+	}
+}
+
+// this function deletes the node which has the same item code as the MechPart object passed through the parameters.
+template <typename MechPart>
+bool BSTree<MechPart>::deleteNode(MechPart* toDelete){
+	int compare; // return false if the tree is NULL.
+	if(root == NULL){
+		return false;
+	}else{
+		
+		compare = current()->compareTo(toDelete); // get the compare value of the root's item code compared to the one to delete.
+		
+		if(compare == 0){ // remove the root node.
+			std::cout << "ROOT delete" << std::endl;
+		
+			BTNode<MechPart>* newRoot = new BTNode<MechPart>(NULL); // create a new root node.
+			newRoot->setLeft(root); // set the left pointer of the new root node to the old root node.
+			root->setParent(newRoot); // set the old root node's parent to the new root node.
+			BTNode<MechPart>* deletedNode = root->remove(toDelete, newRoot); // remove the node from the tree and return it.
+			root = newRoot->getLeft(); // assign the root to the new root nodes left pointer.
+			
+			if(deletedNode != NULL){ // check that the node returned was not NULL.
+			
+				delete deletedNode; // delete the node.
+				return true;
+				
+			}else{ // no node was returned.
+				return false;
+			}
+			
+		}else{
+		
+			// call the recursive function from the root node.
+			BTNode<MechPart>* deletedNode = root->remove(toDelete, NULL); 
+			if(deletedNode != NULL){ // delete the node returned from the function.
+				delete deletedNode;
+				return true;
+			}else{
+				return false;
+			}
+		
+		}
+	}
+	
+}
+
+// this function loops through the tree counting every node. It then returns the number as an int.
+template <typename MechPart>
+int BSTree<MechPart>::countNodes(BTNode<MechPart>* rootNode){
+	if(root == NULL){ // tree is empty.
+		return 0;
+	}else{
+		int count = 1; // 1 for the root node.
+		if(rootNode->getLeft()!=NULL){ // if the left node is not empty.
+			count += countNodes(rootNode->getLeft()); // add the return value of the same function being called on the left node.
+		}
+		if(rootNode->getRight()!=NULL){ // if the right node is not empty.
+			count += countNodes(rootNode->getRight()); 
+		}
+		
+		return count; // return the value of all the nodes after the recursive functions have finished.
+	}
+}
+
+// this function loops through the tree counting the quantity of each item stored in each node.
+template <typename MechPart>
+int BSTree<MechPart>::countParts(BTNode<MechPart>* node){
+	if(root == NULL){ // tree is empty.
+		return 0;
+	}else{
+		int count = node->getData()->getQuantity(); // get the quantity of items stored in the root node.
+		
+		if(node->getLeft()!=NULL){ // check if the left node is not empty.
+			count += countParts(node->getLeft()); // call the same function on the left node.
+		}
+		if(node->getRight()!=NULL){ // check if the right side is not empty.
+			count += countParts(node->getRight()); // call the same function on the right node.
+		}
+		
+		return count;
+	}
+}
+
+// this function is used to search the binary tree through an item code.
+// the item code being searched has been stored in the temporary MechPart object.
+template <typename MechPart>
+MechPart* BSTree<MechPart>::search(const MechPart* input){
+	MechPart* toReturn = NULL; // MechPart object to return is NULL unless it is found.
+	std::string code = input->getCode(); // get the code which we are searching for.
+	if(code == ""){ // code is empty.
+		return NULL;
+	}
+	if(root == NULL){ // tree is empty.
+		return NULL;
+	}
+	
+	// compare the root node's item code against the one being searched.
+	int compared = root->getData()->compareTo(input); 
+	
+	if(compared == 0){ // the two item codes matched.
+		return current();
+	}else if(compared == 1){ // the item code being searched for is lower alphabetically compared to the root nodes.
+		if(root->getLeft() != NULL){
+		
+			// call a different search function with the MechPart and the root node's left node.
+			toReturn = search(input, root->getLeft()); 
+		}	
+		
+	}else if(compared == 2){ // the item code being searched for is higher alphabetically compared to the root node.
+		if(root->getRight() != NULL){
+		
+			// call a different search function with the MechPart and the root node's right node.
+			toReturn = search(input, root->getRight());
+		}
+		
+	}
+	return toReturn;
+	
+}
+
+// this recursive function takes a MechPart object which holds the item key to search.
+// It also takes a node which is used to compare.
+template <typename MechPart>
+MechPart* BSTree<MechPart>::search(const MechPart* input, BTNode<MechPart>* node){
+	MechPart* toReturn = NULL; // MechPart object to return is NULL unless its found.
+	if(node == NULL){ // the node is NULL.
+		return NULL;
+	}
+	
+	// compare the node's item code against the item code being searched.
+	int compared = node->getData()->compareTo(input);
+	if(compared == 0){ // the two codes match.
+		toReturn = node->getData(); // return the MechPart object from the current node.
+	}else if(compared == 1){ // the item code being searched is lower alphabetically compared to the current node.
+		if(node->getLeft() != NULL){ // the nodes left pointer is not NULL.
+			toReturn = search(input, node->getLeft()); // call the same function on the node's left node.
+		}
+		
+	}else if(compared == 2){ // the item code being searched is higher alphabetically compared to the current node.
+		if(node->getRight() != NULL){ // the node's right node is not NULL.
+			toReturn = search(input, node->getRight()); // call the same function on the node's right node.
+		}
+	}
+	
+	return toReturn;
+	
+}
+
+// this function loops through the tree and tries to find the node with the same item code.
+template <typename MechPart>
+int BSTree<MechPart>::searchReturnComparisons(const MechPart* input){
+	BTNode<MechPart>* current = root; // create a new pointer and assign it to the root node.
+	int toReturn; // number to return;
+	std::string code = input->getCode(); // get the code from the MechPart object passed through the parameters.
+	if(code == ""){ // if the code is empty.
+		return 0;
+	}
+	if(root == NULL){ // if the tree is empty.
+		return 0;
+	}
+	while(current != NULL){ // while the pointer is not pointing at a NULL object.
+		toReturn++; // +1 for each node searched.
+		
+		// compare the current node against the one being searched.
+		int compared = current->getData()->compareTo(input);
+	
+		if(compared == 0){ // the node has been found.
+			return toReturn; // return the integer.
+		}else if(compared == 1){ // the node being searched is lower alphabetically to the current node.
+			if(current->getLeft() != NULL){ // if the current node's left node is not NULL.
+				current = current->getLeft(); // make current the left node.
+			}else{ // the left node is NULL.
+				return 0;
+			}
+		
+		}else if(compared == 2){ // the node being searched is higher alphabetically compared to the current nodes.
+			if(current->getRight() != NULL){ // right node is not NULL.
+				current = current->getRight(); 
+			}else{ // the right node was NULL.
+				return 0;
+			}
+		}
+		
+	}
+	return toReturn;
+	
+	
+}
+

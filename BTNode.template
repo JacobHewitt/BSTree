@@ -1,0 +1,203 @@
+//Jacob Hewitt - Computer Science - 3218832
+
+// constructor method. Takes the data to be stored and saves.
+
+template <typename MechPart>
+BTNode<MechPart>::BTNode(MechPart* input){
+	this->data = input;
+}
+
+template <typename MechPart> 
+BTNode<MechPart>::BTNode(MechPart* data, BTNode* left, BTNode* right, BTNode* parent){
+	this->data = data;
+	this->left = left;
+	this->right = right;
+	this->parent = parent;
+	
+}
+
+// destructor method. 
+template <typename MechPart>
+BTNode<MechPart>::~BTNode(){
+	delete data; 
+}
+
+// set the data (MechPart object) to a new MechPart object.
+template <typename MechPart> 
+void BTNode<MechPart>::setData(MechPart* data){
+	if(this->data != NULL){
+		delete this->data; // delete the previous MechPart object
+	}
+	this->data = data;
+}
+
+// set the node's corresponding MechPart object's quantity.
+template <typename MechPart>
+void BTNode<MechPart>::setQuantity(int newQuantity){
+	data->setQuantity(newQuantity);
+}
+
+// set the node's parent pointer.
+template <typename MechPart> 
+void BTNode<MechPart>::setParent(BTNode* parent){
+	this->parent = parent;
+}
+
+// set the left pointer of this node.
+template <typename MechPart> 
+void BTNode<MechPart>::setLeft(BTNode* left){
+	this->left = left;
+}
+
+// set the right pointer of this node.
+template <typename MechPart> 
+void BTNode<MechPart>::setRight(BTNode* right){
+	this->right = right;
+}
+
+// return the MechPart object stored by this node.
+template <typename MechPart> 
+MechPart* BTNode<MechPart>::getData(){
+	return data;
+}
+
+// return the parent node.
+template <typename MechPart> 
+BTNode<MechPart>* BTNode<MechPart>::getParent(){
+	return parent;
+}
+
+// return the left node.
+template <typename MechPart> 
+BTNode<MechPart>* BTNode<MechPart>::getLeft(){
+	return left;
+}
+
+// return the right node.
+template <typename MechPart> 
+BTNode<MechPart>* BTNode<MechPart>::getRight(){
+	return right;
+}
+
+// this recursive function takes a MechPart object.
+// It then calls the compareTo() function from the current node's MechPart object.
+// If the function returns a 0 then the two item codes are the same.
+// If the function returns a 1 or a 2 then the function will create a new node with the MechPart object supplied.
+template <typename MechPart>
+bool BTNode<MechPart>::add(MechPart* toAdd){
+
+	// compare the current node's code against the MechPart object's passed in
+	int compare = this->data->compareTo(toAdd); 
+	
+	if(compare == 0){ // the two item codes are the same.
+		
+		
+		int oldQuantity = data->getQuantity(); // get the quantity from the current node
+		int newQuantity = toAdd->getQuantity(); // get the quantity from the MechPart object
+		int sum = oldQuantity + newQuantity; // work out the new quantity of the item.
+		
+		if(sum <= 0){ // return false if the quantity is 0 or lower
+			return false;
+		}else{ // set the new quantity for the item.
+			data->setQuantity(sum);
+			return true; 
+		}
+		
+	// check if the current node's code is bigger (alphabetically) to the MechPart object to add.
+	}else if(this->data->getCode() > toAdd->getCode()){
+		if(left == NULL){
+			left = new BTNode<MechPart>(toAdd, NULL, NULL, this); // create new node with the MechPart object.
+			return true;
+		}else{
+			return this->left->add(toAdd); // call the same function on this node's left node.
+		}
+		
+	// check if the current node's code is smaller (alphabetically) to the MechPart object to add.
+	}else if(this->data->getCode() < toAdd->getCode()){
+		if(right == NULL){
+			right = new BTNode<MechPart>(toAdd, NULL, NULL, this); // create new node with the MechPart object.
+			return true;
+		}else{
+			return this->right->add(toAdd); // call the same function on this node's left node.
+		}
+	}
+	
+	return false;
+}
+
+// this function returns a node and removes it from the tree. It takes a MechPart object which will correspond to the
+// node to delete. It also takes a node pointer which will be used to track the current node's parent.
+template <typename MechPart>
+BTNode<MechPart>* BTNode<MechPart>::remove(MechPart* toDelete, BTNode<MechPart>* parent){
+	
+	// compare the current node's string against the MechPart object's passed in.
+	int compare = this->data->compareTo(toDelete); 
+	
+	if(compare == 0){ // the two strings match.
+		if(left != NULL){ // check if the current node's left pointer is not NULL.
+			delete data; // delete this node's MechPart object.
+			
+			// create a new MechPart object from the largest item code in the left branch
+			data = new MechPart(this->left->maxValue()); 
+			
+			// remove the node which we just copied the data from.
+			return this->left->remove(this->data, this);
+			
+			
+		}else if(right != NULL){ 
+		
+			// check which pointer the parent node is holding this node in (left or right)
+			if(parent->getLeft() == this){
+				parent->setLeft(right); // set the parents left pointer to the current node's right.
+			}else if(parent->getRight() == this){ // this node is stored in the parents right pointer.
+				parent->setRight(right); // set the parents right pointer to the current node's right.
+			}
+			this->right->setParent(parent); // set the right node's parent to this node's parent.
+			return this; // return this node.
+			
+		// the left and right pointers are both NULL
+		}else if(left == NULL && right == NULL){
+			if(parent != NULL){
+				
+				// work out which pointer this node is held by its parent node.
+				if(parent->getLeft() == this){
+					parent->setLeft(NULL); // set the link to NULL
+				}else if(parent->getRight() == this){
+					parent->setRight(NULL);
+				}
+			}
+			
+			return this; // return this object.
+		}
+		
+	}else if(compare == 1){ // the code of the item to find is smaller than the current nodes.
+		if(left != NULL){ // check the left pointer is not NULL
+			return this->left->remove(toDelete, this); // return the result of the same function called on the left node.
+		}else{
+			return NULL; // (code not found)
+		}
+	}else if(compare == 2){ // the code of the item to find is bigger than the current nodes.
+		if(right != NULL){ // check the right pointer is not NULL.
+			return this->right->remove(toDelete, this); // return the result of the same function called on the right node.
+			
+		}else{
+			return NULL;
+		}
+	}
+	
+	return NULL;
+}
+
+// this function returns the highest item code (alphabetically) for all the nodes bellow this one.
+template <typename MechPart>
+MechPart* BTNode<MechPart>::maxValue(){
+	if(right == NULL){ // the right pointer is NULL. so this is the highest item.
+		return this->data; // return this nodes MechPart object.
+	}else{
+		if(right != NULL){ // check if this node's right pointer is not NULL
+			return right->maxValue(); // return the result of the same function being called on the right node.
+		}
+	}
+	return NULL;
+}
+

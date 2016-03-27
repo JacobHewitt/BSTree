@@ -1,0 +1,186 @@
+//Jacob Hewitt - Computer Science - 3218832
+
+// constructor method. 
+template <typename Data>
+LinkedList<Data>::LinkedList(){
+	head = NULL;
+	current = head;
+	tail = head;
+	counter = 0;
+}
+
+// destructor method. This will loop through all the Nodes and delete them.
+template <typename Data>
+LinkedList<Data>::~LinkedList(){
+	current = head;
+	while(current != NULL){ 
+		Node<Data> *next = current->getLink();
+		delete current;
+		current = next;
+	}
+}
+
+// this function creates a new Node and appends it to the end of the linked list.
+template <typename Data>
+void LinkedList<Data>::addToTail(Data* input){
+	counter+=1; 
+	Node<Data> *temp = new Node<Data>(input); // new Node to be added
+	if(head == NULL){ // check if the LinkedList is empty
+		head = temp;
+		head->setLink(NULL); // set the new Nodes link to NULL (no Nodes following it)
+		tail = head;
+	}else{
+		for(current = head; current!=NULL; current = current->getLink()){ //link through all the Nodes in the list.
+			if(current->getLink()==NULL){ //check if the current Node's link pointer is NULL (the end of the list)
+				current->setLink(temp); //set the current node's link pointer to point at the new Node.
+				tail = temp; //point the tail of the Linked List at the new node created
+				tail->setLink(NULL); //set the new Node's link pointer to NULL
+			}
+		}
+	}
+}
+
+// this function creates a new Node with the data supplied through the parameter.
+template <typename Data>
+void LinkedList<Data>::addToHead(Data input){
+	counter += 1; // increment the number of nodes 
+	Node<Data> *temp = new Node<Data>(input); // create the new Node
+	if(head == NULL){ // check if the LinkedList is empty.
+		head = temp;
+		head->setLink(NULL);
+	}else{
+		temp->setLink(head); // set the new Node's link to the head node.
+		head = temp; // assign the new Node as the head.
+	}
+}
+
+// this function loops through each node in the linked list and checks the node's data against the data passed through the paremeter.
+// If the data matches the Node's the node will be deleted.
+template <typename Data>
+void LinkedList<Data>::deleteNodes(Data input){
+	current = head;
+	Node<Data>* prev;
+	Node<Data>* temp;
+	if(head == NULL){ //check if the list is empty.
+		return;
+	}else if(head->getData() == input){ //check if the head node's data is equal to the input.
+		if(head->getLink() != NULL){ //check if Node's exist after the head.
+			prev = head;
+			head = head->getLink(); //make the head point to the next Node.
+			delete prev;
+			deleteNodes(input);
+		}else{ // delete the only Node in the list.
+			delete head;
+			head = NULL;
+		}
+	}else{ //check the rest of the list.
+		while(current != NULL){ //loop through the list while current is not NULL.
+			if(current->getData() == input){ //check if currents data equals the input.
+				if(current->getLink() != NULL){ //check if current is the end of the list.
+					if(prev != NULL){ //check if the previous Node has been initialized.
+						temp = current; //point the temp pointer at current (Node to delete)
+						prev->setLink(current->getLink()); //set the prev pointer to point to the next Node after current.
+						current = current->getLink(); //set current to the next Node after current.
+						delete temp; //delete current;
+						
+					}else{ //if Prev has not been initialized.
+						head = current->getLink();
+						delete current;
+						
+					}
+					
+				}else{ //if current is the end of the list.
+					if(prev != NULL){ //check if prev has been initialized.
+						tail = prev;
+						delete current;
+						tail->setLink(NULL);
+						break;
+					}else{ //if prev has not been initialized.
+						tail = head;
+						delete current;
+						tail->setLink(NULL);
+						break;
+					}
+					
+				}
+			}else{ //if currents data does not equal the input. 
+				prev = current; //set the prev pointer to current.
+				current = current->getLink(); //set current to the next link in the list.
+			}
+		
+		}
+	}
+}
+
+// this function returns the number of nodes being stored in the linked list.
+template <typename Data>
+size_t LinkedList<Data>::length() const{
+	return counter;
+}
+
+// this function checks if the linked list is empty and returns a boolean
+template <typename Data>
+bool LinkedList<Data>::empty() const{
+	if(head == NULL){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+// this function returns the data the Node is holding. The Node is selected through the integer passed as a parameter.
+template <typename Data>
+Data* LinkedList<Data>::get(int input){
+	Data* toReturn;
+	int get = 0;
+	for(current = head; current!=NULL; current=current->getLink()){ //Loop through the linked list.
+		if(input == get){ //check if this is the Node requested
+			toReturn = current->getData(); //add the current node's data to the toReturn variable.
+		}
+		get++; //increment the get variable.
+	}
+	return toReturn;
+}
+
+// this function returns the number of Nodes 
+template <typename Data>
+int LinkedList<Data>::count(Data input){
+	int toReturn = 0;
+	for(current = head; current != NULL; current=current->getLink()){ //loop through each Node in the list.
+		if(current->getData() == input){ //check if the current Node equals the input data.
+			toReturn++; //increment the toReturn value.
+		}
+	}
+	return toReturn;
+}
+
+// this function returns the data stored in the head node. It also deletes the head Node.
+template <typename Data>
+Data LinkedList<Data>::removeFromHead(){
+	Data toReturn;
+	if(head == NULL){ // check if the List is empty
+		return toReturn;
+	}else if(head->getLink()==NULL){ // check if the head node is the only node.
+		toReturn = head->getData(); // get the data stored
+		delete head; 
+		head = NULL;
+	}else{ // the head node also has a Node after it.
+		current = head->getLink(); // point to the next Node after head.
+		toReturn = head->getData(); // get the data stored by the head node.
+		delete head; 
+		head = current;
+		
+	}
+	counter-=1; // decrement the counter variable (Number of Nodes)
+	return toReturn;
+}
+
+// this function returns the data stored in the head node.
+template <typename Data>
+Data LinkedList<Data>::returnHead() const{
+	Data toReturn;
+	if(head != NULL){ // check if the head Node is not null.
+		toReturn = head->getData();
+	}
+	return toReturn;
+}

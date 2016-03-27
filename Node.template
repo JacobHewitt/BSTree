@@ -1,0 +1,31 @@
+//Jacob Hewitt - Computer Science - 3218832
+
+// constructor method. Takes the data to be stored and saves.
+template <typename Data> 
+Node<Data>::Node(Data* input){
+	data = input;
+}
+
+// destructor method. 
+template <typename Data> 
+Node<Data>::~Node(){
+	delete data;
+}
+
+// this function allows you to set the Link pointer to point at a Node (or NULL)
+template <typename Data> 
+void Node<Data>::setLink(Node *inputNode){
+	link = inputNode;
+}
+
+// this function returns the Node that the 'link' pointer is pointing at (or NULL)
+template <typename Data>
+Node<Data>* Node<Data>::getLink() const{
+	return link;
+}
+
+// this function returns the data being stored by the node.
+template <typename Data>
+Data* Node<Data>::getData() const{
+	return data;
+}
